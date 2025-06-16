@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from pydantic import BaseModel
 import models, schemas
 from database import SessionLocal, engine, Base
 from routers.crud_router import router
@@ -99,3 +101,26 @@ def create_record_enhanced(record: schemas.RecordCreate, db: Session = Depends(g
                 "data": None
             }
         )
+    
+# SQL请求体的数据结构
+class SQLRequest(BaseModel):
+    sql: str
+
+# SQL执行接口
+@app.post("/exec_sql")
+async def exec_sql(sql_req: SQLRequest):
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text(sql_req.sql))
+            # 提交事务（如有需要）
+            conn.commit()
+            return {
+                "success": True,
+                "message": "SQL executed successfully",
+                "rowcount": result.rowcount
+            }
+    except SQLAlchemyError as e:
+        return {
+            "success": False,
+            "error": str(e.__dict__.get("orig") or str(e))
+        }

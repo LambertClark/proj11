@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 import models, schemas
 from database import SessionLocal, engine, Base
 from routers.crud_router import router
@@ -57,3 +58,13 @@ def delete_record(record_id: int, db: Session = Depends(get_db)):
     db.delete(record)
     db.commit()
     return {"message": "Deleted"}
+
+@app.post("/execute_sql")
+def execute_sql(payload: dict, db: Session = Depends(get_db)):
+    sql = payload.get("sql")
+    try:
+        db.execute(text(sql))
+        db.commit()
+        return {"success": True, "message": "SQL executed"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}

@@ -2,11 +2,14 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas
 from database import SessionLocal, engine, Base
+from routers.crud_router import router
 
 # 初始化数据库表
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.include_router(router)
 
 # 获取数据库会话
 def get_db():

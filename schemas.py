@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional, Any
 
 class RecordBase(BaseModel):
     name: str
@@ -15,4 +16,9 @@ class RecordOut(RecordBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class StandardResponse(BaseModel):
+    success: bool
+    message: str
+    data: Optional[Any] = None
